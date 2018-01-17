@@ -2,15 +2,9 @@ CS6200-Project
 
 ===============================================================================
 SETUP:
-
-There are two ways to run this application
-1) Execute the runnable JAR file (GauravNGandhi_HardikRShah_PaarthJKotak.jar)<br/>
-  	a) Open command prompt<br/>
-  b) Go inside the folder GauravNGandhi_HardikRShah_PaarthJKotak/ExecutableJAR<br/>
-  c) Execute the jar file (java -jar GauravNGandhi_HardikRShah_PaarthJKotak.jar)<br/>
   
 2) Import the project into one of the IDEs (Eclipse, Intellij) and run Index.java:<br/>
-  a) Import the project CS6200 into your IDE from GauravNGandhi_HardikRShah_PaarthJKotak/EclipseProject<br/>
+  a) Import the project into your IDE.<br/>
   b) Run Index.java as a Java application.<br/>
 
 ===============================================================================
