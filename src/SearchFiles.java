@@ -34,8 +34,19 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Search for results of the given query using lucene retrieval system
+
+ *
+ */
 public class SearchFiles {
 
+    /**
+     * @param query
+     * @param query_id
+     * @return search for results for the given query
+     * @throws Exception
+     */
     public static List<Result> searchQueries(String query, int query_id) throws Exception {
     	query = query.replaceAll("(?=[]\\[+&|!(){}^\"~*?:\\\\-])", "\\\\").replaceAll("/", "\\\\/");
         String index = Constants.LUCENE_INDEX_DIR;
@@ -46,11 +57,15 @@ public class SearchFiles {
         QueryParser parser = new QueryParser(field, analyzer);
 
         Query q = parser.parse(query);
-        System.out.println("Searching for: " + q.toString(field));
-        return doPagingSearch(searcher, q, query_id);
+        //System.out.println("Searching for: " + q.toString(field));
+        return Results.sortResultAndRank(doPagingSearch(searcher, q, query_id));
     }
 
-     String generateFileContent() throws IOException {
+     /**
+     * @return reads query file
+     * @throws IOException
+     */
+    String generateFileContent() throws IOException {
         FileHandler file_reader = new FileHandler(Constants.QUERY_FILE,1);
         StringBuilder content = new StringBuilder();
         String currentLine;
@@ -59,7 +74,11 @@ public class SearchFiles {
         }
         return content.toString();
     }
-     List<String> getProcessedQueryList(String file_content){
+     /**
+     * @param file_content
+     * @return Cleans the given query
+     */
+    List<String> getProcessedQueryList(String file_content){
         List<String> query_list = new ArrayList<>();
         String[] splitByDoc = file_content.split("</DOC>");
 
@@ -86,12 +105,13 @@ public class SearchFiles {
         List<Result> resultList = new ArrayList<>();
         for(int i = 0; i < hits.length; i++ ){
             Document doc = searcher.doc(hits[i].doc);
-            String doc_id = doc.get("path").substring(doc.get("path").lastIndexOf("\\")+1,doc.get("path").length());
+            String html_name = doc.get("path").substring(doc.get("path").lastIndexOf("\\")+1,doc.get("path").length());
+            String doc_id = html_name.replace(".html","");
             if (doc_id != null) {
-                resultList.add(new Result1(doc_id,hits[i].score, query_id, "Lucene", "Parsed_punctuated"));
+                resultList.add(new Result1(doc_id,hits[i].score, query_id, "Lucene", "CaseFolding_Punctuation"));
             }
         }
-        return resultList;
+        return Results.sortResultAndRank(resultList);
     }
 }
 

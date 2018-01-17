@@ -4,7 +4,7 @@ import java.io.File;
 
 public class Constants {
 	
-    public static final String RAW_CORPUS_DIR = "Documents" + File.separator + "cacm" + File.separator;
+    public static final String RAW_CORPUS_DIR = "ProblemStatement" + File.separator + "cacm" + File.separator;
     public static final String RESULTS_DIR ="Results" + File.separator;
     public static final String PHASE1="Phase1"+File.separator;
     public static final String PHASE2="Phase2"+File.separator;
@@ -15,7 +15,7 @@ public class Constants {
     public static final String PARSED_DOC="ParsedDocuments"+File.separator;
 
     public static final String QUERY_FILE ="ProblemStatement" + File.separator +  "cacm.query.txt";
-    public static final String LUCENE_INDEX_DIR =RESULTS_DIR+"LuceneIndex"+ File.separator;
+    public static final String LUCENE_INDEX_DIR =RESULTS_DIR+ "Index" + "LuceneIndex" +  File.separator;
     public static final String PARSED_CORPUS_DIR = RESULTS_DIR+ PARSED_DOC +"RawCorpus"+ File.separator;
     public static final String RELEVANCE_FILE = "ProblemStatement" + File.separator +"cacm.rel.txt";
     public static final String INDEX_DIR = RESULTS_DIR+"Index"+File.separator;
@@ -62,6 +62,8 @@ public class Constants {
     public static final String PHASE3_STOPPED_TFIDF = RESULTS_DIR + PHASE3 + PHASE3_STOPPED + RESULT_TFIDF;
     
     public static final String PHASE3_QUERYREF = RESULTS_DIR + PHASE3 + "QueryRefinements" + File.separator;
+    
+    public static final String STEMMED_QUERY_FILE = "ProblemStatement" + File.separator +"cacm_stem.query.txt";
     
     
 

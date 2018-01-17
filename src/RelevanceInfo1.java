@@ -1,13 +1,6 @@
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
-import utilities.FileHandler;
 
 /**
- * @author Gaurav Gandhi
- *
+ * Implements RelevanceInfo
  */
 public class RelevanceInfo1 implements RelevanceInfo {
 
@@ -17,6 +10,10 @@ public class RelevanceInfo1 implements RelevanceInfo {
 	private int systemName;
 	
 	
+	/**
+	 * @param queryID
+	 * @param documentID
+	 */
 	public RelevanceInfo1(int queryID, String documentID) {
 		
 		this.queryID = queryID;
@@ -26,24 +23,36 @@ public class RelevanceInfo1 implements RelevanceInfo {
 	}
 	
 	
+	/* (non-Javadoc)
+	 * @see RelevanceInfo#queryId()
+	 */
 	@Override
 	public int queryId() {
 		
 		return this.queryID;
 	}
 
+	/* (non-Javadoc)
+	 * @see RelevanceInfo#literal()
+	 */
 	@Override
 	public String literal() {
 		
 		return this.literal;
 	}
 
+	/* (non-Javadoc)
+	 * @see RelevanceInfo#documentID()
+	 */
 	@Override
 	public String documentID() {
 		
 		return this.documentID;
 	}
 
+	/* (non-Javadoc)
+	 * @see RelevanceInfo#systemName()
+	 */
 	@Override
 	public int systemName() {
 		

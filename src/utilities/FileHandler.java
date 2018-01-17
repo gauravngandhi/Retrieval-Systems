@@ -5,10 +5,9 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Path;
 
 /**
- * @author Gaurav Gandhi
+ * Helper class for reading/writing  a text file
  *
  */
 public class FileHandler {

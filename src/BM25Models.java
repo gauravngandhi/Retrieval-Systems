@@ -2,19 +2,14 @@ import utilities.Constants;
 import utilities.FileHandler;
 
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-//TODO Exclude the relevance info while calculating the BM25 score (confirm first)
 /**
  * Implementation of BM25 retrieval model
- * Returns a list of results for the given query by using BM25 model
- * 
- * @author Gaurav Gandhi
- *
- */
+ * Returns a list of queries with results by using BM25 model
+**/
 public class BM25Models {
 	
 	private static HashMap<String, Integer> documentWordTotal;
@@ -26,7 +21,6 @@ public class BM25Models {
 	/**
 	 * @param queries
 	 * @param invertedIndex1
-	 * @param relevantDocuments1
 	 * @param documentWordTotal1
 	 * @return a list of queries with results updated after performing BM25 retrieval model
 	 */
@@ -55,6 +49,10 @@ public class BM25Models {
 		documentWordTotal = documentWordTotal1;
 		invertedIndex = invertedIndex1;
 		relevantDocuments = query1.listOfRelevantDocuments();
+		boolean relevanceFlag = true;
+		if(relevantDocuments == null)
+			relevanceFlag = false;
+		
 		queryObj = query1;
 		resultList = new ArrayList<Result>();
 		int ri, qfi;
@@ -63,7 +61,10 @@ public class BM25Models {
 		for(String term : queryObj.query().toLowerCase().split(" ")) {
 			try {
 				//System.out.println(term);
-				ri = calculateri(term,invertedIndex.get(term));
+				if(!relevanceFlag)
+					ri = 0;
+				else
+					ri = calculateri(term,invertedIndex.get(term));
 				//ri = 0;
 				qfi = calculateqfi(term);
 				docsOfTerm = new ArrayList<Posting>(invertedIndex.get(term));
@@ -99,7 +100,7 @@ public class BM25Models {
 			r.changeScore(newScore + oldScore);
 		}
 		else {
-			resultList.add(new Result1(docID, newScore, queryObj.queryID(),"BM25","Parsed_punctuated"));
+			resultList.add(new Result1(docID, newScore, queryObj.queryID(),"BM25","CaseFolding_Punctuation"));
 		}
 	}
 	
@@ -127,7 +128,12 @@ public class BM25Models {
 		double b = 0.75;
 		double k2 = 100;
 		double ri = (double) riint;
-		double R = (double) relevantDocuments.size();
+		double R;
+		try {
+			R = (double) relevantDocuments.size();
+		}catch(NullPointerException ne) {
+			R = 0;
+		}
 		//double R = 0;
 		double K = calculateK(k1, b, docID);
 		double ni = (double) niint;

@@ -4,11 +4,10 @@ import java.util.List;
 import java.util.Scanner;
 
 import utilities.Constants;
-import utilities.FileHandler;
 
 /**
- * @author Gaurav Gandhi
- *
+ * Main file for running this application
+ * 
  */
 public class Index {
 
@@ -19,7 +18,6 @@ public class Index {
 	private HashMap<String, Integer> documentLengthStop; // document length after removing stop words 
 	private HashMap<String, List<Posting>> invertedIndexStem; // inverted index using stemmed docs
 	private HashMap<String, Integer> documentLengthStem; // document length of stemmed docs
-	private String directoryParsedStem = Constants.STEM_PARSED_DIR; //path of parsed stemmed documents 
 	@SuppressWarnings("rawtypes")
 	private List<HashMap> indexAndDocumentLength; // store inverted index and document length
 	private final String fileRelevanceInfo = Constants.RELEVANCE_FILE; // path of relevance info file
@@ -31,15 +29,14 @@ public class Index {
 	private final String directoryStemmedParsedCorpus = Constants.STEM_PARSED_DIR;
 	private final String directoryRawCorpus = Constants.RAW_CORPUS_DIR; // directory of the raw corpus
 	private final String directoryParsedCorpus = Constants.PARSED_CORPUS_DIR; // directory of the parsed corpus
+	private List<Query> stemmedQueryList;
 	
 	// Results storing  Phase 1 Task1
-	private List<Query> ResultTask1BM25 = null; // query with updated results of BM25
-	private List<Query> ResultTask1tfIdf = null; // query with updated results of tf-idf
-	private List<Query> ResultTask1SQL = null; // query with updated results of SQL
-	private List<Query> ResultTask1Lucene = null; // query with updated results of Lucene
+	private List<Query> ResultTask1BM25; // query with updated results of BM25
+	private List<Query> ResultTask1tfIdf; // query with updated results of tf-idf
+	private List<Query> ResultTask1SQL; // query with updated results of SQL
+	private List<Query> ResultTask1Lucene; // query with updated results of Lucene
 	
-	// Results storing Phase 1 Task 2
-	private List<Query> ResulTas2PseudoRelevance = null;
 	
 	
 	Scanner in;
@@ -51,10 +48,14 @@ public class Index {
 	private List<Query> ResultTask3StemSQL;
 	private List<Query> phase2SnippetGeneratedQuery;
 	private List<Query> ResultPhase2SQL;
-	private List<Query> PseudoRelevanceUpdatedQueryList;
 	private List<Query> pseudoRelevanceUpdatedQueryList;
 	private List<Query> ResultTask2PRF;
 	
+	/**
+	 * @param nGram
+	 * @throws IOException
+	 * Parse and generate inverted index of raw corpus, using stopped words and of stemmed corpus
+	 */
 	@SuppressWarnings("unchecked")
 	public Index(int nGram) throws IOException {
 		
@@ -62,6 +63,7 @@ public class Index {
 		System.out.println("Please wait initializing...");
 		// Read queries from a file and add them to the list
 		queryList = Queries.readQueriesFromFile(fileQuery);
+		stemmedQueryList = Queries.readQueriesFromStemmedQueryFile(Constants.STEMMED_QUERY_FILE);
 		//Parse and index raw corpus
 		this.parseAndGenerateIndex(nGram);
 		// Inverted index and document length after removing stop words
@@ -83,6 +85,11 @@ public class Index {
 		System.out.println("Index and document length files are stored in " + Constants.INDEX_DIR);
 	}
 	
+	/**
+	 * @param nGram
+	 * @throws IOException
+	 * Parse and generate basic inverted index
+	 */
 	@SuppressWarnings("unchecked")
 	private void parseAndGenerateIndex(int nGram) throws IOException {
 
@@ -98,6 +105,9 @@ public class Index {
 	}
 	
 
+	/**
+	 * Choose a phase for performing various tasks in the given application
+	 */
 	public void choosePhase() {
 		
 		while(true) {
@@ -154,6 +164,8 @@ public class Index {
 		
 		Evaluation e;
 		try {
+			this.ResultTask1BM25 = BM25Models.executeBM25ModelOnSystem(queryList, invertedIndexBase, documentLengthBase);
+			Results.writeResultsToFile(Constants.TASK1_PHASE1_BM25, ResultTask1BM25);
 			e = Evaluations.getEvaluation(this.ResultTask1BM25);
 			Evaluations.writeEvaluationToFile(Constants.PHASE3_BASELINE_BM25, e);
 		}catch(NullPointerException ne) {
@@ -162,6 +174,8 @@ public class Index {
 			System.out.println("Could not perform evaluation on BM25 Run(Phase 1)");
 		}
 		try {
+			this.ResultTask1tfIdf = TfIdf.executeTfIdfOnSystem(queryList, invertedIndexBase, documentLengthBase);
+			Results.writeResultsToFile(Constants.TASK1_PHASE1_TFIDF, ResultTask1tfIdf);
 			e = Evaluations.getEvaluation(this.ResultTask1tfIdf);
 			Evaluations.writeEvaluationToFile(Constants.PHASE3_BASELINE_TFIDF, e);
 		}catch(NullPointerException ne) {
@@ -170,30 +184,54 @@ public class Index {
 			System.out.println("Could not perform evaluation on TFIDF Run(Phase 1)");
 		}
 		try {
+			this.ResultTask1SQL = QueryLikelihoodModel.executeSQLOnSystem(queryList, relevanceInfoList, invertedIndexBase, documentLengthBase);
+			Results.writeResultsToFile(Constants.TASK1_PHASE1_SQL, ResultTask1SQL);
 			e = Evaluations.getEvaluation(this.ResultTask1SQL);
 			Evaluations.writeEvaluationToFile(Constants.PHASE3_BASELINE_SQL, e);
 		}catch(NullPointerException ne) {
 			
 			ne.printStackTrace();
 			System.out.println("Could not perform evaluation on Smoothed query likelihood Run(Phase 1)");
+		} catch (IOException e1) {
+			
+			e1.printStackTrace();
 		}
 		try {
+			IndexFiles.startIndexing(Constants.LUCENE_INDEX_DIR, Constants.RAW_CORPUS_DIR);
+			this.ResultTask1Lucene = LuceneOutputGeneration.outputGeneration(queryList);
+			Results.writeResultsToFile(Constants.TASK1_PHASE1_Lucne, ResultTask1Lucene);
 			e = Evaluations.getEvaluation(this.ResultTask1Lucene);
 			Evaluations.writeEvaluationToFile(Constants.PHASE3_BASELINE_lUCENE, e);
 		}catch(NullPointerException ne) {
 			
 			ne.printStackTrace();
 			System.out.println("Could not perform evaluation on Lucene Run(Phase 1)");
+		} catch (IOException e1) {
+			
+			e1.printStackTrace();
+		} catch (Exception e1) {
+			
+			e1.printStackTrace();
 		}
 		try {
+			this.ResultTask1SQL = QueryLikelihoodModel.executeSQLOnSystem(queryList, relevanceInfoList, invertedIndexBase, documentLengthBase);
+			Results.writeResultsToFile(Constants.TASK1_PHASE1_SQL, ResultTask1SQL);
+			this.pseudoRelevanceUpdatedQueryList = PseudoRelevanceFeedback.performPseudoRelevanceFeedback(ResultTask1SQL, invertedIndexBase, documentLengthBase);
+			this.ResultTask2PRF = QueryLikelihoodModel.executeSQLOnSystem(pseudoRelevanceUpdatedQueryList, relevanceInfoList, invertedIndexBase, documentLengthBase);
+			Results.writeResultsToFile(Constants.PHASE1_TASK2_PRF, ResultTask2PRF);
 			e = Evaluations.getEvaluation(this.ResultTask2PRF);
 			Evaluations.writeEvaluationToFile(Constants.PHASE3_QUERYREF, e);
 		}catch(NullPointerException ne) {
 			
 			ne.printStackTrace();
 			System.out.println("Could not perform evaluation on Query Likelihood PRF(Phase 2)");
+		} catch (IOException e1) {
+			
+			e1.printStackTrace();
 		}
 		try {
+			this.ResultTask3STOPBM25 = BM25Models.executeBM25ModelOnSystem(queryList, invertedIndexStop, documentLengthStop);
+			Results.writeResultsToFile(Constants.PHASE1_TASK3_STOP_BM25, ResultTask3STOPBM25);
 			e = Evaluations.getEvaluation(this.ResultTask3STOPBM25);
 			Evaluations.writeEvaluationToFile(Constants.PHASE3_STOPPED_BM25, e);
 		}catch(NullPointerException ne) {
@@ -202,15 +240,22 @@ public class Index {
 			System.out.println("Could not perform evaluation on BM25 Run Stopped(Phase 1)");
 		}
 		try {
-			e = Evaluations.getEvaluation(this.ResultTask3StemSQL);
+			this.ResultTask3STOPSQL = QueryLikelihoodModel.executeSQLOnSystem(queryList, relevanceInfoList, invertedIndexStop, documentLengthStop);
+			Results.writeResultsToFile(Constants.PHASE1_TASK3_STOP_SQL, ResultTask3STOPSQL);
+			e = Evaluations.getEvaluation(this.ResultTask3STOPSQL);
 			Evaluations.writeEvaluationToFile(Constants.PHASE3_STOPPED_SQL, e);
 		}catch(NullPointerException ne) {
 			
 			ne.printStackTrace();
 			System.out.println("Could not perform evaluation on Smoother query likelihood Run Stopped(Phase 1)");
+		} catch (IOException e1) {
+			
+			e1.printStackTrace();
 		}
 		try {
-			e = Evaluations.getEvaluation(this.ResultTask3StemTFIDF);
+			this.ResultTask3STOPTFIDF = TfIdf.executeTfIdfOnSystem(queryList, invertedIndexStop, documentLengthStop);
+			Results.writeResultsToFile(Constants.PHASE1_TASK3_STOP_TFIDF, ResultTask3STOPTFIDF);
+			e = Evaluations.getEvaluation(this.ResultTask3STOPTFIDF);
 			Evaluations.writeEvaluationToFile(Constants.PHASE3_STOPPED_TFIDF, e);
 		}catch(NullPointerException ne) {
 			
@@ -220,6 +265,10 @@ public class Index {
 		
 	}
 	
+	/**
+	 * Index generation, Run 4 baseline models and perform pseudo relevance feedback using the results 
+	 * of Query likelihood model 
+	 */
 	private void phase1() {
 		
 		while(true) {
@@ -257,6 +306,10 @@ public class Index {
 		}
 	}
 	
+	/**
+	 * Perform tasks using stopped word list or on stemmed corpus
+	 * Run BM25, TF-IDF< or query likelihood models on stopped or stemmed corpus
+	 */
 	@SuppressWarnings("unchecked")
 	private void phase1Task3() {
 		while(true) {
@@ -309,6 +362,9 @@ public class Index {
 		}
 	}
 	
+	/**
+	 * Run BM25, Query likelihood or TF-IDF using either stopped word list of stemmed corpus
+	 */
 	private void phase1Task3Runs() {
 		
 		while(true) {
@@ -336,25 +392,25 @@ public class Index {
 			
 			case 2:
 				// run bm25 tfidf query likelihood on stemmed
-				this.ResultTask3StemBM25 = BM25Models.executeBM25ModelOnSystem(queryList, invertedIndexStem, documentLengthStem);
+				this.ResultTask3StemBM25 = BM25Models.executeBM25ModelOnSystem(stemmedQueryList, invertedIndexStem, documentLengthStem);
 				this.ResultTask3StemBM25.stream().forEach(query -> {
 					query.resultList().stream().forEach(result -> {
-						result.changeModelName(result.modelName() + "Stemmed");
+						result.changeModelName(result.modelName() + "_Stemmed");
 					});
 				});
 				Results.writeResultsToFile(Constants.PHASE1_TASK3_STEM_BM25, ResultTask3StemBM25);
-				this.ResultTask3StemTFIDF = TfIdf.executeTfIdfOnSystem(queryList, invertedIndexStem, documentLengthStem);
+				this.ResultTask3StemTFIDF = TfIdf.executeTfIdfOnSystem(stemmedQueryList, invertedIndexStem, documentLengthStem);
 				this.ResultTask3StemTFIDF.stream().forEach(query -> {
 					query.resultList().stream().forEach(result -> {
-						result.changeModelName(result.modelName() + "Stemmed");
+						result.changeModelName(result.modelName() + "_Stemmed");
 					});
 				});
 				Results.writeResultsToFile(Constants.PHASE1_TASK3_STEM_TFIDF, ResultTask3StemTFIDF);
 				try {
-					this.ResultTask3StemSQL = QueryLikelihoodModel.executeSQLOnSystem(queryList, relevanceInfoList, invertedIndexStem, documentLengthStem);
+					this.ResultTask3StemSQL = QueryLikelihoodModel.executeSQLOnSystem(stemmedQueryList, relevanceInfoList, invertedIndexStem, documentLengthStem);
 					this.ResultTask3StemSQL.stream().forEach(query -> {
 						query.resultList().stream().forEach(result -> {
-							result.changeModelName(result.modelName() + "Stemmed");
+							result.changeModelName(result.modelName() + "_Stemmed");
 						});
 					});
 					Results.writeResultsToFile(Constants.PHASE1_TASK3_STEM_SQL, ResultTask3StemSQL);
@@ -377,6 +433,10 @@ public class Index {
 		}
 	}
 	
+	/**
+	 * Parse and index the raw corpus
+	 * Run 4 baseline models on the basic inverted index
+	 */
 	private void phase1Task1() {
 		
 		while(true) {
@@ -415,6 +475,12 @@ public class Index {
 		}
 	}
 	
+	/**
+	 * Choose 1 of the 4 baseline runs for the raw corpus
+	 */
+	/**
+	 * 
+	 */
 	private void phase1Task1BaselineRuns() {
 		
 		while(true) {
@@ -472,38 +538,11 @@ public class Index {
 	}
 	
 	
-	private void phase1Task2Runs() {
-		
-		while(true) {
-			switch(in.nextInt()) {
-			
-			case 1:
-				//BM25 Run
-				break;
-			case 2:
-				//tf-idf Run
-				break;
-			case 3:
-				//Smoothed Query Likelihood
-				break;
-			case 4:
-				//Lucene
-				break;
-			default:
-				System.out.println("Invalid Input");
-				break;
-			case 9: 
-				//GO back to previous menu
-				this.choosePhase();
-				break;
-			case 0:
-				// Exit
-				System.exit(0);
-				break;
-			}
-		}
-	}
-	
+	/**
+	 * Perform pseudo relevance feedback on the results of returned by query likelihood model
+	 * and again perform query likelihood on the updated list of queries given by pseudo relevance feedback
+	 * algorithm
+	 */
 	private void phase1Task2() {
 		
 		try {
@@ -521,6 +560,10 @@ public class Index {
 		Results.writeResultsToFile(Constants.PHASE1_TASK2_PRF, ResultTask2PRF);
 	}
 	
+	/**
+	 * @param args
+	 * @throws IOException
+	 */
 	public static void main(String[] args) throws IOException {
 		
 		Index i = new Index(1); // 1 is the nGram

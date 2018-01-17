@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -11,8 +10,6 @@ import java.util.stream.Collectors;
  * <b> Constructor template for Evaluation1
  * new Evaluation1()
  * 
- * @author Gaurav Gandhi
- *
  */
 public class Evaluation1 implements Evaluation {
 	
@@ -20,9 +17,6 @@ public class Evaluation1 implements Evaluation {
 	private double mrr; // represents the mean reciprocal rank of the given system
 	private final List<Query> queryList; // represents the list of list of queries of the given system
 	
-	/**
-	 * 
-	 */
 	/**
 	 * @param queryList
 	 * @Where The queries with no relevant documents are removed
@@ -80,8 +74,8 @@ public class Evaluation1 implements Evaluation {
 	 * @Effects calculates mean reciprocal rank, assigns it to mrr.
 	 */
 	private void calculateMRR() {
-		
-		this.mrr = calculateRR().stream().mapToDouble(x -> x).average().getAsDouble();
+
+        this.mrr = calculateRR().stream().mapToDouble(x -> x).average().getAsDouble();
 	}
 	
 
@@ -104,6 +98,7 @@ public class Evaluation1 implements Evaluation {
 		List<Double> apList = new ArrayList<Double>();
 		this.queryList.stream().forEach(query -> {
 			apList.add(query.resultList().stream().mapToDouble(result -> result.precision()).average().getAsDouble());
+			//System.out.println("---"+apList);
 		});;
 		
 		return apList;

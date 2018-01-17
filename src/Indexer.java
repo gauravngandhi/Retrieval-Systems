@@ -7,16 +7,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 
-import utilities.Constants;
 import utilities.FileHandler;
 
 /** 
  * 
  * Generates a map of inverted index and document length of the corpus
- * @author Gaurav Gandhi
- *
  */
 public class Indexer {
 	
@@ -85,7 +81,7 @@ public class Indexer {
 				doc = doc.substring(0, doc.indexOf('.'));
 				generateDocumentLength(doc, currentLine.split(" ").length);
 				//this.documentWordTotal.put(doc, currentLine.split(" ").length);
-				System.out.println(doc);
+				//System.out.println(doc);
 				
 				String docID = doc;
 				this.generateTerms(docID, currentLine);
@@ -118,7 +114,6 @@ public class Indexer {
 	 */
 	private void generateTerms(String docID, String currentLine) {
 		
-		boolean breakFlag = false;
 		while(!currentLine.isEmpty()) {
 			
 			
